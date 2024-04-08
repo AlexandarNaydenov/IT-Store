@@ -9,6 +9,10 @@ import (
 var envConfig *config
 
 func Config() *config {
+	if envConfig == nil {
+		InitConfig()
+	}
+
 	return envConfig
 }
 
