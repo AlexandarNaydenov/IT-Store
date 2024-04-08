@@ -78,6 +78,25 @@ func (db *mongodb) CreateProduct(ctx context.Context, product models.Product) (s
 	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
+// UpdateProductByID updates the product with the given id in the database
+func (db *mongodb) UpdateProductByID(ctx context.Context, id string, product models.Product) error {
+	collection := db.client.Database(db.databaseName).Collection(db.productsCollection)
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("failed to convert the id %s to an ObjectID: %w", id, err)
+	}
+
+	filter := bson.D{{"_id", objID}}
+	update := bson.D{{"$set", bson.M{"name": product.Name, "price": product.Price}}}
+
+	if _, err = collection.UpdateOne(ctx, filter, update); err != nil {
+		return fmt.Errorf("failed to update the product with id %s: %w", id, err)
+	}
+
+	return nil
+}
+
 func initClient(ctx context.Context) (*mongo.Client, error) {
 	uri := fmt.Sprintf("mongodb://%s:%s@%s:%d", config.Config().Database.Username, config.Config().Database.Password, config.Config().Database.Host, config.Config().Database.Port)
 

@@ -19,6 +19,7 @@ type ProductService interface {
 	GetProducts(ctx context.Context) ([]models.Product, error)
 	GetProductByID(ctx context.Context, id string) (*models.Product, error)
 	CreateProduct(ctx context.Context, product models.Product) (string, error)
+	UpdateProductByID(ctx context.Context, id string, product models.Product) error
 }
 
 type productHandler struct {
@@ -67,4 +68,24 @@ func (h *productHandler) CreateProduct(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, gin.H{"id": id})
+}
+
+// UpdateProductByID updates the product and sends a response with the status to the client
+func (h *productHandler) UpdateProductByID(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	var product models.Product
+	if err := ctx.BindJSON(&product); err != nil {
+		slog.Error("Failed to bind the product: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.controller.UpdateProductByID(ctx, id, product); err != nil {
+		slog.Error("Failed to update the product with id %s: %v", id, err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, nil)
 }

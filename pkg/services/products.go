@@ -17,6 +17,7 @@ type ProductsStorage interface {
 	GetProducts(ctx context.Context) ([]models.Product, error)
 	GetProductByID(ctx context.Context, id string) (*models.Product, error)
 	CreateProduct(ctx context.Context, product models.Product) (string, error)
+	UpdateProductByID(ctx context.Context, id string, product models.Product) error
 }
 
 type productService struct {
@@ -51,4 +52,14 @@ func (c *productService) CreateProduct(ctx context.Context, product models.Produ
 	}
 
 	return id, nil
+}
+
+// UpdateProductByID updates the product with the given id in the storage
+func (c *productService) UpdateProductByID(ctx context.Context, id string, product models.Product) error {
+	err := c.storage.UpdateProductByID(ctx, id, product)
+	if err != nil {
+		return fmt.Errorf("failed to update the product with id %s: %w", id, err)
+	}
+
+	return nil
 }
